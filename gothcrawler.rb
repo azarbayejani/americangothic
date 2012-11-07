@@ -5,7 +5,7 @@ require 'json'
 require 'parallel'
 
 BASE_PITCHFORK_URL = "http://pitchfork.com"
-REVIEW_URL = "#{BASE_PITCHFORK_URL}/reviews/albums/680"
+REVIEW_URL = "#{BASE_PITCHFORK_URL}/reviews/albums"
 DATA_DIR = "data"
 Dir.mkdir(DATA_DIR) unless File.exists? DATA_DIR
 
@@ -35,7 +35,7 @@ class Review
 		puts url
 		begin 
 			review = Nokogiri::HTML(open(url))
-		rescue Interrupt, Errno::EINTR
+		rescue Interrupt, Errno::EINTR, Errno::ETIMEDOUT
 			retry
 		end
 
@@ -50,7 +50,7 @@ class Review
 		if reviewer_info then author, publish_date = reviewer_info.text.split(';') end
 		if release_info then label , year = release_info.text.split(';') end
 
-		text = review.css('.editorial').text.gsbub(/\n/,"").delete('-')
+		text = review.css('.editorial').text.gsub(/\n/,"").delete('-')
 
 		new(title.text,artist.text,artwork,nil,author,publish_date,year,label,text)
 
@@ -61,7 +61,7 @@ end
 while true
 	Parallel.each reviews, :in_threads=>8 do |a|
 		currReview = Review.new_from_url "#{BASE_PITCHFORK_URL}#{a['href']}"
-		currReview.text.scan(/[\w']+\./).each do |word|
+		currReview.text.scan(/[\w'.]+\.?/).each do |word|
 			freqs[word]+=1
 		end
 	end
