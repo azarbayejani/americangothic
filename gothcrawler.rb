@@ -1,8 +1,10 @@
-require 'rubygems'
 require 'nokogiri'
 require 'open-uri'
 require 'json'
 require 'parallel'
+require 'raingrams'
+
+include Raingrams
 
 BASE_PITCHFORK_URL = "http://pitchfork.com"
 REVIEW_URL = "#{BASE_PITCHFORK_URL}/reviews/albums"
@@ -32,7 +34,7 @@ class Review
 	end
 
 	def self.new_from_url (url)
-		puts url
+		#puts url
 		begin 
 			review = Nokogiri::HTML(open(url))
 		rescue Interrupt, Errno::EINTR, Errno::ETIMEDOUT
@@ -58,22 +60,28 @@ class Review
 
 end
 
-while true
-	Parallel.each reviews, :in_threads=>8 do |a|
-		currReview = Review.new_from_url "#{BASE_PITCHFORK_URL}#{a['href']}"
-		currReview.text.scan(/[\w'.]+\.?/).each do |word|
-			freqs[word]+=1
+unless File.exists? "#{DATA_DIR}/model"
+	model = BigramModel.build :ngram_size=>3
+
+	while true
+		Parallel.each reviews, :in_threads=>8 do |a|
+			currReview = Review.new_from_url "#{BASE_PITCHFORK_URL}#{a['href']}" unless File.exists? a['href']
+			puts a['href']
+			model.train_with_text(currReview.text)
+		end
+
+		nextpage = page.css('.next:has(*)')
+
+		if nextpage.empty?
+			break
+		else
+			page = Nokogiri::HTML(open("#{BASE_PITCHFORK_URL}#{nextpage[0]['href']}"))
+			reviews = page.css('.object-grid a')
 		end
 	end
-
-	nextpage = page.css('.next:has(*)')
-
-	if nextpage.empty?
-		break
-	else
-		page = Nokogiri::HTML(open("#{BASE_PITCHFORK_URL}#{nextpage[0]['href']}"))
-		reviews = page.css('.object-grid a')
-	end
+	model.save("data/model")
+else
+	model.open("data/model")
 end
 
-puts freqs.sort_by { |word, freq| freq} .to_json
+puts model.random_sentence
