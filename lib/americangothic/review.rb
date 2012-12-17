@@ -1,7 +1,7 @@
 require 'nokogiri'
 require 'open-uri'
 
-class Review
+class Review 
 
 	#private_class_method :new
 	attr_accessor :title,:text
@@ -21,7 +21,7 @@ class Review
 	def self.new_from_url (url)
 
 		if has_local_cache? url
-			self.new_from_local url
+			new_from_local url
 		end
 
 		#puts url
@@ -41,10 +41,11 @@ class Review
 
 		if reviewer_info then author, publish_date = reviewer_info.text.split(';') end
 		if release_info then label , year = release_info.text.split(';') end
+		if score then score = score.text end
 
 		text = review.css('.editorial').text.gsub(/\n/,"").delete('-')
 
-		new(title.text,artist.text,artwork,nil,author,publish_date,year,label,text)
+		new(title.text,artist.text,artwork,score,author,publish_date,year,label,text)
 
 	end
 
