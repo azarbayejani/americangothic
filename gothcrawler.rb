@@ -1,8 +1,36 @@
+# USAGE  
+# 	--rebuild <i> : do a full rebuild from the start (deletes old stuff!), defaults to 3
+
+require 'rubygems'
 require 'nokogiri'
 require 'open-uri'
 require 'json'
 require 'parallel'
 require 'raingrams'
+require 'trollop'
+
+####################
+# options handling #
+####################
+
+opts = Trollop::options do
+	version "americangothic 0.0.0 (c) 2012 Bobby Azarbayejani"
+	banner <<-EOS
+americangothic takes pitchfork reviews does something clever with them.
+
+Usage: 
+			americangothic [options] <integer>
+
+where <integer> is the n-gram to be generated
+
+EOS
+	opt :rebuild, 
+		<<-EOS
+Do a full rebuild from online (deleting cache)
+		EOS
+end
+
+
 
 include Raingrams
 
