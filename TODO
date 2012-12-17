@@ -1,0 +1,8 @@
+ ☐ command-line options
+   ☐ only use cache
+   ☐ full rebuild (do full query)
+     ☐ this would probably require an n-gram option
+   ☐ rebuild model from cache
+     ☐ require n-gram option
+
+ ☐ port Review.initialize to use options rather than arguments  
