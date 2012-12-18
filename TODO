@@ -6,3 +6,5 @@
      ☐ require n-gram option
 
  ☐ port Review.initialize to use options rather than arguments  
+
+ 
